@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "src/app/admin_dashboard/page.jsx", "src/app/middleware.ts", "src/app/donation_form/page.jsx", "src/app/admin_login/page.jsx", "src/app/staff_login/page.jsx"  ],
   "exclude": ["node_modules"]
 }
