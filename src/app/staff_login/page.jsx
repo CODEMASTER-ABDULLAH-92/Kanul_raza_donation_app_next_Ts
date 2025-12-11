@@ -88,12 +88,12 @@ useEffect(() => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4 md:p-8">
+    <main className="min-h-screen bg-linear-to-r from-green-50 via-white to-green-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl p-6 md:p-10 w-full max-w-md border border-green-100">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
               <FiUser className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -151,7 +151,7 @@ useEffect(() => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Identifier */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               {loginMethod === "staffId" ? (
                 <>
                   <FiUser className="h-4 w-4 text-gray-500" />
@@ -187,7 +187,7 @@ useEffect(() => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiLock className="h-4 w-4 text-gray-500" />
               Password *
             </label>
@@ -276,7 +276,7 @@ useEffect(() => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-3 rounded-xl bg-linear-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -296,7 +296,7 @@ useEffect(() => {
                 href="/staff_registeration"
                 className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                Don't have an account? Register here
+                Don`t have an account? Register here
                 <FiArrowRight className="h-4 w-4" />
               </Link>
             </div>

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { 
   FiUser, FiMail, FiPhone, FiLock, FiArrowLeft, FiShield,
-  FiUserPlus, FiKey, FiCheckCircle, FiEye, FiEyeOff
+  FiUserPlus, FiKey, FiEye, FiEyeOff
 } from "react-icons/fi";
 import Link from "next/link";
 
@@ -161,12 +161,12 @@ const onSubmit = async (data) => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4 md:p-8">
+    <main className="min-h-screen bg-linear-to-r from-purple-50 via-white to-purple-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl p-6 md:p-10 w-full max-w-md border border-purple-100">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-linear-to-r from-purple-500 to-purple-600 flex items-center justify-center">
               <FiShield className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-purple-700">Admin Registration</h1>
@@ -185,7 +185,7 @@ const onSubmit = async (data) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Admin ID */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiUser className="h-4 w-4 text-gray-500" />
               Admin ID *
             </label>
@@ -215,7 +215,7 @@ const onSubmit = async (data) => {
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiUser className="h-4 w-4 text-gray-500" />
               Full Name *
             </label>
@@ -235,7 +235,7 @@ const onSubmit = async (data) => {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiMail className="h-4 w-4 text-gray-500" />
               Email Address *
             </label>
@@ -258,7 +258,7 @@ const onSubmit = async (data) => {
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiPhone className="h-4 w-4 text-gray-500" />
               Phone Number *
             </label>
@@ -281,7 +281,7 @@ const onSubmit = async (data) => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiLock className="h-4 w-4 text-gray-500" />
               Password *
             </label>
@@ -317,7 +317,7 @@ const onSubmit = async (data) => {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiKey className="h-4 w-4 text-gray-500" />
               Confirm Password *
             </label>
@@ -375,7 +375,7 @@ const onSubmit = async (data) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg hover:from-purple-600 hover:to-purple-700 hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-xl bg-linear-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg hover:from-purple-600 hover:to-purple-700 hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

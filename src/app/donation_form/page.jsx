@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
@@ -185,7 +185,7 @@ useEffect(() => {
           toast.error(
             <div className="flex flex-col">
               <span className="font-semibold">Some notifications failed</span>
-              <span className="text-sm text-red-600 text-xs">
+              <span className="text-sm text-red-600 ">
                 {emailError && `Email: ${emailError}`}
                 {emailError && smsError && <br />}
                 {smsError && `SMS: ${smsError}`}
@@ -213,12 +213,12 @@ useEffect(() => {
     }
   };
   return (
-    <main className="min-h-screen w-full bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4 md:p-8">
+    <main className="min-h-screen w-full bg-linear-to-r from-green-50 via-white to-green-50 flex items-center justify-center p-4 md:p-8">
       <div className="bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl p-6 md:p-10 w-full max-w-4xl border border-green-100">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
               <FaHandHoldingHeart className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-green-700">
@@ -247,7 +247,7 @@ useEffect(() => {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Donor Information Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100">
+          <div className="bg-linear-to-r from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100">
             <h2 className="text-xl font-semibold text-green-800 mb-4 flex items-center gap-2">
               <FiUser className="h-5 w-5" />
               Donor Information
@@ -255,7 +255,7 @@ useEffect(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Donor Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <FiUser className="h-4 w-4 text-gray-500" />
                   Donor Full Name *
                 </label>
@@ -280,7 +280,7 @@ useEffect(() => {
 
               {/* Donor Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <FiMail className="h-4 w-4 text-gray-500" />
                   Email Address *
                 </label>
@@ -305,7 +305,7 @@ useEffect(() => {
 
               {/* Phone Number */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <FiPhone className="h-4 w-4 text-gray-500" />
                   Phone Number *
                 </label>
@@ -330,7 +330,7 @@ useEffect(() => {
 
               {/* Donation Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <FiDollarSign className="h-4 w-4 text-gray-500" />
                   Donation Amount (PKR) *
                 </label>
@@ -359,7 +359,7 @@ useEffect(() => {
           </div>
 
           {/* Charity Details Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
+          <div className="bg-linear-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
             <h2 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
               <FiHome className="h-5 w-5" />
               Charity Details
@@ -367,7 +367,7 @@ useEffect(() => {
 
             {/* Charity Type */}
             <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className=" text-sm font-medium text-gray-700 mb-3">
                 Type of Charity *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -403,7 +403,7 @@ useEffect(() => {
 
             {/* Charity Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className=" text-sm font-medium text-gray-700 mb-3">
                 Donation For *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -439,7 +439,7 @@ useEffect(() => {
           </div>
 
           {/* Additional Notes */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
+          <div className="bg-linear-to-r from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Additional Notes (Optional)
             </h2>
@@ -452,7 +452,7 @@ useEffect(() => {
           </div>
 
           {/* Notification Preferences */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100">
+          <div className="bg-linear-to-r from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100">
             <h2 className="text-xl font-semibold text-purple-800 mb-4">
               Send Notifications to Donor
             </h2>
@@ -562,7 +562,7 @@ useEffect(() => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-xl bg-linear-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

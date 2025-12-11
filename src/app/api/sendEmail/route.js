@@ -222,4 +222,9 @@ class EmailService {
   }
 }
 
-export default new EmailService();
+
+const emailService = new EmailService();
+
+export default emailService;
+
+// export default new EmailService();

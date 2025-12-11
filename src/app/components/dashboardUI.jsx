@@ -13,15 +13,13 @@ import {
   FiPlus,
   FiEdit,
   FiTrash2,
-  FiMail,
-  FiRefreshCw,
+  
   FiDownload,
   FiDollarSign,
-  FiCalendar,
   FiCheckCircle,
   FiClock,
 } from "react-icons/fi";
-import { FaMosque, FaUserShield, FaChartLine } from "react-icons/fa";
+import { FaMosque, FaUserShield } from "react-icons/fa";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -354,7 +352,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-white">
+      <div className="min-h-screen flex items-center justify-center  bg-linear-to-r from-green-50 to-white">
         <div className="text-center">
           <div className="h-12 w-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-4 text-gray-600 font-medium">
@@ -366,7 +364,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-gradient-to-b from-green-50 to-white flex">
+    <main className="min-h-screen w-full bg-linear-to-r from-green-50 to-white flex">
       {/* Mobile Overlay */}
       {sidebarOpen && isMobile && (
         <div
@@ -383,7 +381,7 @@ export default function AdminDashboard() {
       >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg  from-green-500 to-green-600 flex items-center justify-center">
               <FaMosque className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -409,7 +407,7 @@ export default function AdminDashboard() {
             }}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               active === "dashboard"
-                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                ? "bg-linear-to-r from-green-500 to-green-600 text-white shadow-md"
                 : "text-gray-700 hover:bg-green-50"
             }`}
           >
@@ -423,7 +421,7 @@ export default function AdminDashboard() {
             }}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               active === "charities"
-                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                ? "bg-linear-to-r from-green-500 to-green-600 text-white shadow-md"
                 : "text-gray-700 hover:bg-green-50"
             }`}
           >
@@ -437,7 +435,7 @@ export default function AdminDashboard() {
             }}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               active === "staff"
-                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                ? "bg-linear-to-r from-green-500 to-green-600 text-white shadow-md"
                 : "text-gray-700 hover:bg-green-50"
             }`}
           >
@@ -448,7 +446,7 @@ export default function AdminDashboard() {
         <div className="mt-auto pt-6 border-t border-gray-200">
           <div className="mb-4 p-3 bg-green-50 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
+              <div className="h-10 w-10 rounded-full bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
                 {adminUser?.name?.charAt(0) || "A"}
               </div>
               <div className="flex-1">
@@ -519,7 +517,7 @@ export default function AdminDashboard() {
                   });
                   setShowAddStaffModal(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
               >
                 <FiPlus /> Add Staff
               </button>
@@ -527,7 +525,7 @@ export default function AdminDashboard() {
 
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="menu-button md:hidden p-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white"
+              className="menu-button md:hidden p-2 rounded-lg bg-linear-to-r from-green-500 to-green-600 text-white"
             >
               <FiMenu size={20} />
             </button>

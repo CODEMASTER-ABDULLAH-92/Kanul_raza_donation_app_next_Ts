@@ -39,13 +39,13 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen w-full bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <main className="min-h-screen w-full bg-linear-to-r from-green-50 via-white to-emerald-50">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-green-200 bg-white/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
                 <FaMosque className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-green-700">Kanul Riza Institute</span>
@@ -68,7 +68,7 @@ export default function Home() {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Welcome to <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Kanul Riza Institute</span>
+            Welcome to <span className="bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Kanul Riza Institute</span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -79,7 +79,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link
               href="/staff_login"
-              className="group px-8 py-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex items-center justify-center gap-3"
+              className="group px-8 py-4 rounded-xl bg-linear-to-r from-green-500 to-green-600 text-white font-semibold shadow-lg hover:from-green-600 hover:to-green-700 hover:shadow-xl transition-all flex items-center justify-center gap-3"
             >
               <FiLock className="h-5 w-5" />
               <span>Staff Login Portal</span>
@@ -124,10 +124,10 @@ export default function Home() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Mission & Vision</h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
+              <div className="w-24 h-1 bg-linear-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 md:p-12 rounded-2xl shadow-lg border border-green-200">
+            <div className="bg-linear-to-r from-green-50 to-emerald-50 p-8 md:p-12 rounded-2xl shadow-lg border border-green-200">
               <p className="text-lg text-gray-700 leading-relaxed mb-6">
                 <span className="font-semibold text-green-700">Kanul Riza Institute</span> is a comprehensive Islamic platform dedicated to serving the Muslim community through education, spiritual guidance, and social welfare. We strive to create a society deeply rooted in Islamic values while addressing contemporary challenges.
               </p>
@@ -167,7 +167,7 @@ export default function Home() {
       </div>
 
       {/* Services Section */}
-      <div id="services" className="py-16 bg-gradient-to-b from-white to-green-50">
+      <div id="services" className="py-16 bg-linear-to-r from-white to-green-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Core Services</h2>
@@ -194,7 +194,7 @@ export default function Home() {
       {/* CTA Section */}
       <div className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-8 md:p-12 text-center text-white shadow-2xl">
+          <div className="max-w-4xl mx-auto bg-linear-to-r from-green-600 to-emerald-600 rounded-2xl p-8 md:p-12 text-center text-white shadow-2xl">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Support Our Mission</h2>
             <p className="text-green-100 mb-8 max-w-2xl mx-auto">
               Your donations help us continue our important work in education, construction, and community welfare. Every contribution makes a difference.
@@ -277,11 +277,11 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-gradient-to-b from-white to-green-50 py-8">
+      <footer className="border-t border-gray-200 bg-linear-to-r from-white to-green-50 py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
                 <FaMosque className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold text-green-700">Kanul Riza Institute</span>
