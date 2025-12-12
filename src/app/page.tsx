@@ -288,17 +288,17 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-6 text-sm text-gray-600">
-              <Link href="/privacy" className="hover:text-green-600 transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-green-600 transition-colors">Terms of Service</Link>
-              <span className="text-gray-400">•</span>
-              <span>&copy; {new Date().getFullYear()} All rights reserved</span>
-            </div>
-            
-            <div className="text-sm text-gray-500">
+              {/* <Link href="/privacy" className="hover:text-green-600 transition-colors">Privacy Policy</Link> */}
+              {/* <Link href="/terms" className="hover:text-green-600 transition-colors">Terms of Service</Link> */}
+              {/* <span className="text-gray-400">•</span> */}
               <p className="flex items-center gap-2">
                 <FiHeart className="h-4 w-4 text-red-400" />
                 Serving the Muslim Ummah with dedication
               </p>
+            </div>
+            
+            <div className="text-sm text-gray-500">
+              <span>&copy; {new Date().getFullYear()} All rights reserved</span>
             </div>
           </div>
         </div>
