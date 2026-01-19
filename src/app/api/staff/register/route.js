@@ -14,12 +14,11 @@ export async function POST(request) {
     const body = await request.json();
     console.log('📦 [API] Request body received:', JSON.stringify(body, null, 2));
     
-    const { staffId, name, email, phone, password, role = 'collector' } = body;
+    const { name, email, phone, password, role = 'collector' } = body;
 
     // Detailed validation
     console.log('🔍 [API] Validating fields...');
     const missingFields = [];
-    if (!staffId) missingFields.push('staffId');
     if (!name) missingFields.push('name');
     if (!email) missingFields.push('email');
     if (!phone) missingFields.push('phone');
@@ -41,19 +40,17 @@ export async function POST(request) {
     // Check if staff already exists
     console.log('🔍 [API] Checking for existing staff...');
     const existingStaff = await Staff.findOne({ 
-      $or: [{ email }, { staffId }, { phone }] 
+      $or: [{ email }, { phone }] 
     });
 
     if (existingStaff) {
       console.error('❌ [API] Staff already exists:', {
         email: existingStaff.email,
-        staffId: existingStaff.staffId,
         phone: existingStaff.phone
       });
       
       let errorMessage = 'Staff already exists';
       if (existingStaff.email === email) errorMessage = 'Email already registered';
-      else if (existingStaff.staffId === staffId) errorMessage = 'Staff ID already exists';
       else if (existingStaff.phone === phone) errorMessage = 'Phone number already registered';
       
       return NextResponse.json(
@@ -74,7 +71,6 @@ export async function POST(request) {
     // Create new staff
     console.log('👤 [API] Creating new staff document...');
     const staff = new Staff({
-      staffId,
       name,
       email,
       phone,

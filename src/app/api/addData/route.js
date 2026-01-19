@@ -57,7 +57,6 @@ export async function POST(request) {
       charityType,
       category,
       notes,
-      staffId: staff.staffId,
       staffName: staff.name,
       sendEmail,
       sendSMS: false, // SMS disabled

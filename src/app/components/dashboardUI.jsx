@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -10,58 +9,52 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
-  FiPlus,
-  FiEdit,
-  FiTrash2,
-  
   FiDownload,
   FiDollarSign,
   FiCheckCircle,
   FiClock,
+  FiTrash2,
+  
+  FiMail,
+  FiPhone,
+  FiCalendar,
+  FiUser,
+  FiRefreshCw,
+  FiSearch,
 } from "react-icons/fi";
-import { FaMosque, FaUserShield } from "react-icons/fa";
+import { FaMosque, } from "react-icons/fa";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [active, setActive] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [charities, setCharities] = useState([]);
+  const [donations, setDonations] = useState([]);
   const [staffMembers, setStaffMembers] = useState([]);
   const [stats, setStats] = useState({
     totalDonations: 0,
     activeStaff: 0,
-    completedDonations: 0,
-    pendingDonations: 0,
     totalDonors: 0,
     averageDonation: 0,
+    thisMonthDonations: 0,
+    todayDonations: 0,
   });
   const [adminUser, setAdminUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(null);
 
-  const [newStaff, setNewStaff] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    staffId: "",
-    role: "collector",
-  });
-
-  // Fetch data on component mount
+  // Check mobile view
   useEffect(() => {
-    checkAuthAndFetchData();
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
-
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Check authentication and fetch data
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedAdmin = localStorage.getItem("admin_user");
@@ -81,24 +74,16 @@ export default function AdminDashboard() {
         }
       }
     }
+
+    fetchAllData();
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    localStorage.removeItem("admin_user");
-
-    toast.success("Logged out successfully");
-    router.push("/admin_login");
-  };
-
-  const checkAuthAndFetchData = async () => {
+  // Fetch all data
+  const fetchAllData = async () => {
+    setLoading(true);
     try {
-      // Fetch all data
-      await Promise.all([
-        fetchDonations(),
-        fetchStaffMembers(),
-        fetchStatistics(),
-      ]);
+      await Promise.all([fetchDonations(), fetchStaffMembers()]);
+      calculateStats();
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load dashboard data");
@@ -106,18 +91,16 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
-  
-  
-  const [donations, setDonations] = useState([]);
 
+  // Fetch donations from API
   const fetchDonations = async () => {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-      console.error("No admin token found. Please login first.");
-      return;
-    }
-
     try {
+      const token = localStorage.getItem("admin_token");
+      if (!token) {
+        console.error("No admin token found");
+        return;
+      }
+
       const res = await fetch("/api/getalldata", {
         method: "GET",
         headers: {
@@ -130,20 +113,17 @@ export default function AdminDashboard() {
       }
 
       const data = await res.json();
-      console.log("Donations:", data.data.donations);
-      setDonations(data.data.donations);
+      setDonations(data.data.donations || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch donations error:", err);
+      setDonations([]);
     }
   };
 
-  useEffect(() => {
-    fetchDonations();
-  }, []); // Empty dependency to run only once
-
+  // Fetch staff members
   const fetchStaffMembers = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       const response = await fetch("/api/staff/getAllStaff", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -151,162 +131,158 @@ export default function AdminDashboard() {
       });
 
       const result = await response.json();
-
       if (result.success) {
         setStaffMembers(result.data.staff || []);
       } else {
-        toast.error("Failed to fetch staff members");
+        console.error("Failed to fetch staff members");
+        setStaffMembers([]);
       }
     } catch (error) {
       console.error("Error fetching staff:", error);
+      setStaffMembers([]);
     }
   };
 
-  const fetchStatistics = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/donations/stats", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  // Calculate statistics from donations
+ const calculateStats = () => {
+  // 1. Handle Empty State
+  if (!donations || donations.length === 0) {
+    setStats({
+      totalDonations: 0,
+      activeStaff: staffMembers.filter((s) => s.active).length,
+      totalDonors: 0,
+      averageDonation: 0,
+      thisMonthDonations: 0,
+      todayDonations: 0,
+    });
+    return;
+  }
 
-      const result = await response.json();
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const today = now.getDate();
 
-      if (result.success) {
-        setStats({
-          totalDonations: result.data.summary.totalAmount || 0,
-          activeStaff: staffMembers.filter((s) => s.active).length,
-          completedDonations: result.data.summary.totalAmount || 0, // You might want to filter by status
-          pendingDonations: 0, // You'll need to add status filtering
-          totalDonors: await fetchTotalDonors(),
-          averageDonation: result.data.summary.averageAmount || 0,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching statistics:", error);
+  // 2. Calculate Total Amount (Rounded)
+  const totalAmount = donations.reduce((sum, donation) => {
+    return sum + (parseFloat(donation.amount) || 0);
+  }, 0);
+
+  // 3. Calculate This Month's Amount
+  const thisMonthAmount = donations.reduce((sum, donation) => {
+    if (!donation.createdAt) return sum;
+    const donationDate = new Date(donation.createdAt);
+    if (donationDate.getMonth() === thisMonth && donationDate.getFullYear() === thisYear) {
+      return sum + (parseFloat(donation.amount) || 0);
     }
-  };
+    return sum;
+  }, 0);
 
-  const fetchTotalDonors = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/donations?distinct=email", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-      return result.data?.length || 0;
-    } catch (error) {
-      console.error("Error fetching donors:", error);
-      return 0;
-    }
-  };
-
-  const handleAddStaff = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/staff/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newStaff),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to create staff");
-      }
-
-      toast.success(`Staff account created for ${newStaff.name}`);
-
-      // Refresh staff list
-      await fetchStaffMembers();
-
-      // Reset form
-      setNewStaff({
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
-        staffId: "",
-        role: "collector",
-      });
-      setShowAddStaffModal(false);
-    } catch (error) {
-      console.error("Error adding staff:", error);
-      toast.error(error.message || "Failed to create staff account");
-    }
-  };
-
-  const handleDeleteStaff = async (staffId) => {
+  // 4. Calculate Today's Amount
+  const todayAmount = donations.reduce((sum, donation) => {
+    if (!donation.createdAt) return sum;
+    const donationDate = new Date(donation.createdAt);
     if (
-      !window.confirm("Are you sure you want to deactivate this staff member?")
+      donationDate.getDate() === today &&
+      donationDate.getMonth() === thisMonth &&
+      donationDate.getFullYear() === thisYear
     ) {
-      return;
+      return sum + (parseFloat(donation.amount) || 0);
+    }
+    return sum;
+  }, 0);
+
+  // 5. Get unique donors
+  const uniqueDonors = new Set(
+    donations.map((donation) => donation.email).filter(Boolean)
+  );
+
+  // 6. Calculate Average
+  const rawAvg = donations.length > 0 ? totalAmount / donations.length : 0;
+
+  // 7. Set Stats with Decimals Removed
+  setStats({
+    totalDonations: Math.floor(totalAmount), // Removes decimals
+    activeStaff: staffMembers.filter((s) => s.active).length,
+    totalDonors: uniqueDonors.size,
+    averageDonation: Math.floor(rawAvg),    // Removes decimals
+    thisMonthDonations: Math.floor(thisMonthAmount), // Removes decimals
+    todayDonations: Math.floor(todayAmount), // Removes decimals
+  });
+};
+
+  // Recalculate stats when donations or staffMembers change
+  useEffect(() => {
+    calculateStats();
+  }, [donations, staffMembers]);
+
+  // Filter donations based on search term
+  const filteredDonations = donations.filter((donation) =>
+    searchTerm === "" ||
+    donation.donorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    donation.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    donation.phone?.includes(searchTerm) ||
+    donation.receiptNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    donation.staffName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Delete donation function
+  const handleDeleteDonation = async (donationId, donorName) => {
+  // 1. Confirmation Dialog
+  if (!window.confirm(`Are you sure you want to delete the donation from ${donorName || "this donor"}?`)) {
+    return;
+  }
+
+  setDeleteLoading(donationId);
+  
+  try {
+    const token = localStorage.getItem("admin_token");
+    
+    // 2. API Call
+    const response = await fetch(`/api/deleteDonation/${donationId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to delete donation");
     }
 
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/staff/${staffId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to deactivate staff");
-      }
-
-      toast.success("Staff member deactivated");
-
-      // Refresh staff list
-      await fetchStaffMembers();
-      await fetchStatistics();
-    } catch (error) {
-      console.error("Error deleting staff:", error);
-      toast.error(error.message || "Failed to deactivate staff");
+    // 3. Success Feedback
+    toast.success("Donation deleted successfully");
+    
+    // 4. Update UI State
+    setDonations((prev) => prev.filter(d => d._id !== donationId));
+    
+    if (typeof calculateStats === "function") {
+      calculateStats();
     }
+
+  } catch (error) {
+    console.error("Error deleting donation:", error);
+    toast.error(error.message || "An unexpected error occurred");
+  } finally {
+    setDeleteLoading(null);
+  }
+};
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+    toast.success("Logged out successfully");
+    router.push("/admin_login");
   };
 
-  const handleActivateStaff = async (staffId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/staff/${staffId}/activate`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to activate staff");
-      }
-
-      toast.success("Staff member activated");
-
-      // Refresh staff list
-      await fetchStaffMembers();
-      await fetchStatistics();
-    } catch (error) {
-      console.error("Error activating staff:", error);
-      toast.error(error.message || "Failed to activate staff");
-    }
-  };
-
+  // Export data function
   const handleExportData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("admin_token");
       const response = await fetch("/api/donations/export", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -318,9 +294,7 @@ export default function AdminDashboard() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `donations-export-${
-          new Date().toISOString().split("T")[0]
-        }.csv`;
+        a.download = `donations-export-${new Date().toISOString().split("T")[0]}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -335,24 +309,37 @@ export default function AdminDashboard() {
     }
   };
 
-  const generateStaffId = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let staffId = "STAFF-";
-    for (let i = 0; i < 6; i++) {
-      staffId += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return staffId;
-  };
-
+  // Refresh data
   const handleRefresh = async () => {
     setLoading(true);
-    await checkAuthAndFetchData();
+    await fetchAllData();
     toast.success("Data refreshed");
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return `PKR ${parseFloat(amount || 0).toLocaleString("en-PK", {
+      // minimumFractionDigits: 2,
+      // maximumFractionDigits: 2,
+    })}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center  bg-linear-to-r from-green-50 to-white">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-green-50 to-white">
         <div className="text-center">
           <div className="h-12 w-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-4 text-gray-600 font-medium">
@@ -381,7 +368,7 @@ export default function AdminDashboard() {
       >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg  from-green-500 to-green-600 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
               <FaMosque className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -416,11 +403,11 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => {
-              setActive("charities");
+              setActive("donations");
               setSidebarOpen(false);
             }}
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-              active === "charities"
+              active === "donations"
                 ? "bg-linear-to-r from-green-500 to-green-600 text-white shadow-md"
                 : "text-gray-700 hover:bg-green-50"
             }`}
@@ -477,50 +464,44 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-3">
               <h2 className="text-2xl md:text-3xl font-bold text-green-800">
                 {active === "dashboard" && "Dashboard Overview"}
-                {active === "charities" && "Donation Management"}
+                {active === "donations" && "Donation Management"}
                 {active === "staff" && "Staff Management"}
-                {active === "analytics" && "Analytics"}
               </h2>
               <button
                 onClick={handleRefresh}
                 className="p-2 rounded-lg hover:bg-green-50 text-green-600"
                 title="Refresh Data"
               >
-                {/* <FiRefresh size={20} /> */}
+                <FiRefreshCw size={20} />
               </button>
             </div>
             <p className="text-gray-600 mt-1">
-              {active === "dashboard" &&
-                "Monitor all activities and statistics"}
-              {active === "charities" && "View and manage all donation records"}
-              {active === "staff" && "Create and manage staff accounts"}
-              {active === "analytics" && "Detailed reports and insights"}
+              {active === "dashboard" && "Monitor all activities and statistics"}
+              {active === "donations" && "View and manage all donation records"}
+              {active === "staff" && "Manage staff accounts and permissions"}
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            {active === "charities" && (
-              <button
-                onClick={handleExportData}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
-              >
-                <FiDownload size={18} /> Export
-              </button>
-            )}
-
-            {active === "staff" && (
-              <button
-                onClick={() => {
-                  setNewStaff({
-                    ...newStaff,
-                    staffId: generateStaffId(),
-                  });
-                  setShowAddStaffModal(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
-              >
-                <FiPlus /> Add Staff
-              </button>
+            {active === "donations" && (
+              <>
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search donations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                <button
+                  onClick={handleExportData}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <FiDownload size={18} /> Export
+                </button>
+              </>
             )}
 
             <button
@@ -536,13 +517,13 @@ export default function AdminDashboard() {
         {active === "dashboard" && (
           <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="p-5 bg-white rounded-xl shadow-sm border border-green-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Donations</p>
                     <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">
-                      PKR {stats.totalDonations.toLocaleString()}
+                      {formatCurrency(stats.totalDonations)}
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -550,11 +531,28 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
-                  {charities.length} total transactions
+                  {donations.length} total transactions
                 </p>
               </div>
 
               <div className="p-5 bg-white rounded-xl shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Today`s Donations</p>
+                    <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">
+                      {formatCurrency(stats.todayDonations)}
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <FiCalendar className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  This month: {formatCurrency(stats.thisMonthDonations)}
+                </p>
+              </div>
+
+              {/* <div className="p-5 bg-white rounded-xl shadow-sm border border-green-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Active Staff</p>
@@ -562,36 +560,21 @@ export default function AdminDashboard() {
                       {stats.activeStaff}
                     </p>
                   </div>
-                  <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <FiUsers className="h-6 w-6 text-blue-600" />
+                  <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <FiUsers className="h-6 w-6 text-purple-600" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
                   {staffMembers.length} total staff members
                 </p>
-              </div>
-
-              <div className="p-5 bg-white rounded-xl shadow-sm border border-green-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Donors</p>
-                    <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">
-                      {stats.totalDonors}
-                    </p>
-                  </div>
-                  <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <FiUsers className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-3">Unique donors</p>
-              </div>
+              </div> */}
 
               <div className="p-5 bg-white rounded-xl shadow-sm border border-green-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Avg. Donation</p>
                     <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">
-                      PKR {stats.averageDonation.toFixed(2).toLocaleString()}
+                      {formatCurrency(stats.averageDonation)}
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -599,318 +582,230 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
-                  Average donation amount
+                  {stats.totalDonors} unique donors
                 </p>
               </div>
             </div>
 
-            {/* Recent Donations Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
-              <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Recent Donations
-                </h3>
-                <button
-                  onClick={() => setActive("charities")}
-                  className="text-green-600 hover:text-green-700 font-medium text-sm"
-                >
-                  View All →
-                </button>
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Donations */}
+              <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
+                <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Recent Donations
+                  </h3>
+                  <button
+                    onClick={() => setActive("donations")}
+                    className="text-green-600 hover:text-green-700 font-medium text-sm"
+                  >
+                    View All →
+                  </button>
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {donations.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      <FiDatabase className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                      <p>No donations recorded yet</p>
+                    </div>
+                  ) : (
+                    donations.slice(0, 5).map((donation) => (
+                      <div key={donation._id} className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-gray-900">{donation.donorName || "N/A"}</p>
+                            <p className="text-sm text-gray-500">{donation.email || "No email"}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-green-600">{formatCurrency(donation.amount)}</p>
+                            <p className="text-xs text-gray-500">{donation.category || "General"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                {charities.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <FiDatabase className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-                    <p>No donations recorded yet</p>
-                  </div>
-                ) : (
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="p-3 text-left text-sm font-medium text-gray-700">
-                          Donor
-                        </th>
-                        <th className="p-3 text-left text-sm font-medium text-gray-700">
-                          Amount
-                        </th>
-                        <th className="p-3 text-left text-sm font-medium text-gray-700">
-                          Category
-                        </th>
-                        <th className="p-3 text-left text-sm font-medium text-gray-700">
-                          Staff
-                        </th>
-                        <th className="p-3 text-left text-sm font-medium text-gray-700">
-                          Date
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {charities.slice(0, 5).map((donation) => (
-                        <tr
-                          key={donation._id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="p-3">
-                            <div className="font-medium text-gray-900">
-                              {donation.donorName}
+
+              {/* Staff Activity */}
+              <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
+                <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Staff Activity
+                  </h3>
+                  <button
+                    onClick={() => setActive("staff")}
+                    className="text-green-600 hover:text-green-700 font-medium text-sm"
+                  >
+                    View All →
+                  </button>
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {staffMembers.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      <FiUsers className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                      <p>No staff members found</p>
+                    </div>
+                  ) : (
+                    staffMembers.slice(0, 5).map((staff) => (
+                      <div key={staff._id} className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
+                              {staff.name?.charAt(0) || "S"}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {donation.email}
+                            <div>
+                              <p className="font-medium text-gray-900">{staff.name}</p>
+                              <p className="text-xs text-gray-500">{staff.role || "Collector"}</p>
                             </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="font-bold text-green-600">
-                              PKR {donation.amount?.toLocaleString()}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                              {donation.category}
-                            </span>
-                          </td>
-                          <td className="p-3 text-gray-700">
-                            {donation.staffName}
-                          </td>
-                          <td className="p-3 text-gray-600">
-                            {new Date(donation.createdAt).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            staff.active 
+                              ? "bg-emerald-100 text-emerald-700" 
+                              : "bg-gray-100 text-gray-700"
+                          }`}>
+                            {staff.active ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
         )}
-{active === "charities" && (
-  <div className="space-y-6">
-    <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
-      {/* Header */}
-      <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">All Donations</h3>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">
-            Showing {donations.length} donation{donations.length !== 1 && "s"}
-          </span>
-        </div>
-      </div>
 
-      {/* Empty State */}
-      {donations.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
-          <FiDatabase className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-          <p className="text-lg font-medium mb-2">No donations found</p>
-          <p className="text-gray-500">
-            Donations will appear here once recorded
-          </p>
-        </div>
-      ) : (
-        /* Donations Table */
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-green-50">
-              <tr>
-                <th className="p-4 text-left font-semibold text-gray-700">Receipt</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Donor Name</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Amount</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Category</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Type</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Staff</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Date</th>
-                <th className="p-4 text-left font-semibold text-gray-700">Email Sent</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {donations.map((donation) => (
-                <tr key={donation._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4 font-mono text-sm text-gray-500">
-                    {donation.receiptNumber || "-"}
-                  </td>
-                  <td className="p-4">
-                    <div>
-                      <div className="font-medium text-gray-900">{donation.donorName || "-"}</div>
-                      <div className="text-sm text-gray-500">{donation.email || "-"}</div>
-                      <div className="text-xs text-gray-400">{donation.phone || "-"}</div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="font-bold text-green-600">
-                      PKR {donation.amount ? donation.amount.toLocaleString() : "-"}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                      {donation.category || "-"}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                      {donation.charityType || "-"}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div>
-                      <div className="text-gray-700">{donation.staffName || "-"}</div>
-                      <div className="text-xs text-gray-500">{donation.staffId || "-"}</div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-gray-600">
-                    {donation.createdAt
-                      ? new Date(donation.createdAt).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
-                        donation.emailSent
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {donation.emailSent ? <FiCheckCircle size={14} /> : <FiClock size={14} />}
-                      {donation.emailSent ? "Sent" : "Pending"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  </div>
-)}
-
-        {/* STAFF MANAGEMENT */}
-        {active === "staff" && (
+        {/* DONATIONS MANAGEMENT */}
+        {active === "donations" && (
           <div className="space-y-6">
+            {/* Stats Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Total Donations</p>
+                <p className="text-xl font-bold text-green-600">{formatCurrency(stats.totalDonations)}</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Total Records</p>
+                <p className="text-xl font-bold text-green-600">{donations.length}</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Showing</p>
+                <p className="text-xl font-bold text-green-600">{filteredDonations.length} of {donations.length}</p>
+              </div>
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
-              <div className="p-5 border-b border-gray-100">
+              <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Staff Members
+                  All Donations
                 </h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">
+                    {filteredDonations.length} donation{filteredDonations.length !== 1 && "s"}
+                  </span>
+                </div>
               </div>
 
-              {staffMembers.length === 0 ? (
+              {filteredDonations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <FiUsers className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                  <p className="text-lg font-medium mb-2">
-                    No staff members found
-                  </p>
+                  <FiDatabase className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-lg font-medium mb-2">No donations found</p>
                   <p className="text-gray-500">
-                    Add staff members to get started
+                    {searchTerm ? "Try a different search term" : "Donations will appear here once recorded"}
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[800px]">
                     <thead className="bg-green-50">
                       <tr>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Staff ID
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Name
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Email
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Phone
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Role
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Status
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Last Login
-                        </th>
-                        <th className="p-4 text-left font-semibold text-gray-700">
-                          Actions
-                        </th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Receipt</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Donor Information</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Amount</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Details</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Staff</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Date</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {staffMembers.map((member) => (
-                        <tr
-                          key={member._id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="p-4 font-mono text-sm text-gray-500">
-                            {member.staffId}
+                      {filteredDonations.map((donation) => (
+                        <tr key={donation._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-4">
+                            <div className="font-mono text-sm text-gray-900 bg-gray-50 p-2 rounded border">
+                              {donation.receiptNumber || "N/A"}
+                            </div>
                           </td>
                           <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
-                                {member.name?.charAt(0) || "S"}
+                            <div>
+                              <div className="font-medium text-gray-900 flex items-center gap-2">
+                                <FiUser className="h-4 w-4 text-gray-400" />
+                                {donation.donorName || "-"}
                               </div>
-                              <span className="font-medium text-gray-900">
-                                {member.name}
+                              <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <FiMail className="h-3 w-3" />
+                                {donation.email || "No email"}
+                              </div>
+                              <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <FiPhone className="h-3 w-3" />
+                                {donation.phone || "No phone"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-bold text-green-600">
+                              {formatCurrency(donation.amount)}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="space-y-1">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                                {donation.category || "-"}
+                              </span>
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs block">
+                                {donation.charityType || "-"}
                               </span>
                             </div>
                           </td>
-                          <td className="p-4 text-gray-700">{member.email}</td>
-                          <td className="p-4 text-gray-700">{member.phone}</td>
                           <td className="p-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-sm ${
-                                member.role === "admin"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}
-                            >
-                              {member.role}
-                            </span>
+                            <div>
+                              <div className="text-gray-700">{donation.staffName || "-"}</div>
+                              {donation.notes && (
+                                <div className="text-xs text-gray-500 mt-1 truncate max-w-xs">
+                                  {donation.notes}
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-sm ${
-                                member.active
+                            <div className="text-sm text-gray-600">
+                              {formatDate(donation.createdAt)}
+                            </div>
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                                donation.emailSent
                                   ? "bg-emerald-100 text-emerald-700"
                                   : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {member.active ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="p-4 text-gray-600">
-                            {member.lastLogin
-                              ? new Date(member.lastLogin).toLocaleDateString()
-                              : "Never"}
+                              }`}>
+                                {donation.emailSent ? <FiCheckCircle size={12} /> : <FiClock size={12} />}
+                                {donation.emailSent ? "Email Sent" : "Email Pending"}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              {member.active ? (
-                                <button
-                                  onClick={() => handleDeleteStaff(member._id)}
-                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Deactivate"
-                                >
-                                  <FiTrash2 size={16} />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() =>
-                                    handleActivateStaff(member._id)
-                                  }
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Activate"
-                                >
-                                  <FiCheckCircle size={16} />
-                                </button>
-                              )}
                               <button
-                                onClick={() => {
-                                  // Navigate to edit staff page
-                                  router.push(`/admin/staff/${member._id}`);
-                                }}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit"
+                                onClick={() => handleDeleteDonation(donation._id, donation.donorName)}
+                                disabled={deleteLoading === donation._id}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                title="Delete"
                               >
-                                <FiEdit size={16} />
+                                {deleteLoading === donation._id ? (
+                                  <div className="h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                  <FiTrash2 size={16} />
+                                )}
                               </button>
                             </div>
                           </td>
@@ -923,150 +818,104 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-      </section>
 
-      {/* ADD STAFF MODAL */}
-      {showAddStaffModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
-                  <FaUserShield className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Add New Staff
+        {/* STAFF MANAGEMENT */}
+        {active === "staff" && (
+          <div className="space-y-6">
+            {/* Staff Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Total Staff</p>
+                <p className="text-xl font-bold text-green-600">{staffMembers.length}</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Active Staff</p>
+                <p className="text-xl font-bold text-green-600">{stats.activeStaff}</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Collectors</p>
+                <p className="text-xl font-bold text-green-600">
+                  {staffMembers.filter(s => s.role === 'collector').length}
+                </p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-green-100">
+                <p className="text-sm text-gray-600">Admins</p>
+                <p className="text-xl font-bold text-green-600">
+                  {staffMembers.filter(s => s.role === 'admin').length}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
+              <div className="p-5 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Staff Members
                 </h3>
               </div>
-              <button
-                onClick={() => setShowAddStaffModal(false)}
-                className="p-2 rounded-lg hover:bg-gray-100"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Staff ID
-                </label>
-                <input
-                  type="text"
-                  value={newStaff.staffId}
-                  readOnly
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-generated Staff ID
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={newStaff.name}
-                  onChange={(e) =>
-                    setNewStaff({ ...newStaff, name: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                  placeholder="Enter full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={newStaff.email}
-                  onChange={(e) =>
-                    setNewStaff({ ...newStaff, email: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                  placeholder="staff@kanulriza.org"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number *
-                </label>
-                <input
-                  type="tel"
-                  value={newStaff.phone}
-                  onChange={(e) =>
-                    setNewStaff({ ...newStaff, phone: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                  placeholder="03XXXXXXXXX"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role *
-                </label>
-                <select
-                  value={newStaff.role}
-                  onChange={(e) =>
-                    setNewStaff({ ...newStaff, role: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                >
-                  <option value="collector">Collector</option>
-                  <option value="supervisor">Supervisor</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Temporary Password *
-                </label>
-                <input
-                  type="text"
-                  value={newStaff.password}
-                  onChange={(e) =>
-                    setNewStaff({ ...newStaff, password: e.target.value })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                  placeholder="Create secure password"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  Share this password securely with the staff member. They
-                  should change it on first login.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={() => setShowAddStaffModal(false)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddStaff}
-                disabled={
-                  !newStaff.name ||
-                  !newStaff.email ||
-                  !newStaff.password ||
-                  !newStaff.phone
-                }
-                className="flex-1 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Create Account
-              </button>
+              {staffMembers.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <FiUsers className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-lg font-medium mb-2">No staff members found</p>
+                  <p className="text-gray-500">
+                    Staff members will appear here once registered
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-green-50">
+                      <tr>
+                        <th className="p-4 text-left font-semibold text-gray-700">Staff Info</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Contact</th>
+                        <th className="p-4 text-left font-semibold text-gray-700">Role</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {staffMembers.map((staff) => (
+                        <tr key={staff._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
+                                {staff.name?.charAt(0) || "S"}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{staff.name}</p>
+                                <p className="text-xs text-gray-500">Joined: {formatDate(staff.createdAt)}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="space-y-1">
+                              <p className="text-gray-700 flex items-center gap-2">
+                                <FiMail className="h-4 w-4 text-gray-400" />
+                                {staff.email}
+                              </p>
+                              <p className="text-gray-700 flex items-center gap-2">
+                                <FiPhone className="h-4 w-4 text-gray-400" />
+                                {staff.phone || "N/A"}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-3 py-1 rounded-full text-sm ${
+                              staff.role === "admin"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}>
+                              {staff.role || "collector"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </section>
     </main>
   );
 }

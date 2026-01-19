@@ -17,34 +17,30 @@ export default function StaffLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMethod, setLoginMethod] = useState("staffId"); // 'staffId' or 'email'
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm();
 
-
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("staff_token");
-    if (token) router.push("/donation_form");
-  }
-}, [router]); // prevents infinite re-render
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("staff_token");
+      if (token) router.push("/donation_form");
+    }
+  }, [router]);
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
       console.log("📤 [Login] Attempting login...");
 
-      // Prepare login data based on method
-      const loginData =
-        loginMethod === "staffId"
-          ? { staffId: data.identifier, password: data.password }
-          : { email: data.identifier, password: data.password };
+      // Login data - only email now
+      const loginData = {
+        email: data.email,
+        password: data.password
+      };
 
       console.log("📤 [Login] Sending data:", loginData);
 
@@ -115,79 +111,36 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Login Method Toggle */}
-        <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("staffId");
-              setValue("identifier", "");
-            }}
-            className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-              loginMethod === "staffId"
-                ? "bg-white text-green-700 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Staff ID
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod("email");
-              setValue("identifier", "");
-            }}
-            className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-              loginMethod === "email"
-                ? "bg-white text-green-700 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Email
-          </button>
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Identifier */}
+          {/* Email */}
           <div>
-            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              {loginMethod === "staffId" ? (
-                <>
-                  <FiUser className="h-4 w-4 text-gray-500" />
-                  Staff ID *
-                </>
-              ) : (
-                <>
-                  <FiMail className="h-4 w-4 text-gray-500" />
-                  Email Address *
-                </>
-              )}
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <FiMail className="h-4 w-4 text-gray-500" />
+              Email Address *
             </label>
             <input
-              type={loginMethod === "email" ? "email" : "text"}
-              {...register("identifier", {
-                required: `${
-                  loginMethod === "staffId" ? "Staff ID" : "Email"
-                } is required`,
+              type="email"
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address",
+                },
               })}
-              placeholder={
-                loginMethod === "staffId"
-                  ? "Enter your staff ID"
-                  : "you@example.com"
-              }
+              placeholder="you@example.com"
               className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
             />
-            {errors.identifier && (
+            {errors.email && (
               <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <span>⚠️</span> {errors.identifier.message}
+                <span>⚠️</span> {errors.email.message}
               </p>
             )}
           </div>
 
           {/* Password */}
           <div>
-            <label className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <FiLock className="h-4 w-4 text-gray-500" />
               Password *
             </label>
@@ -249,28 +202,6 @@ useEffect(() => {
             </button>
           </div>
 
-          {/* Demo Credentials Banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <div className="flex items-start gap-2">
-              <span className="text-blue-500">💡</span>
-              <div className="text-xs text-blue-800">
-                <p className="font-medium mb-1">Demo Credentials:</p>
-                <p className="mb-1">
-                  Staff ID:{" "}
-                  <code className="bg-blue-100 px-2 py-1 rounded">
-                    STAFF001
-                  </code>
-                </p>
-                <p>
-                  Password:{" "}
-                  <code className="bg-blue-100 px-2 py-1 rounded">
-                    password123
-                  </code>
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Form Actions */}
           <div className="flex flex-col gap-4 pt-2">
             <button
@@ -302,25 +233,7 @@ useEffect(() => {
             </div>
           </div>
         </form>
-
-        {/* Footer Note */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-sm text-gray-500 mb-2">
-              For security reasons, please logout when finished
-            </p>
-            <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-              <span>🔒 Secure Connection</span>
-              <span>•</span>
-              <span>📱 Mobile Friendly</span>
-              <span>•</span>
-              <span>⚡ Fast</span>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   );
 }
-
-

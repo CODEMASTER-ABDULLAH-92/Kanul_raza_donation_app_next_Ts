@@ -46,10 +46,7 @@ const donationSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  staffId: {
-    type: String,
-    required: true
-  },
+
   staffName: {
     type: String,
     required: true
