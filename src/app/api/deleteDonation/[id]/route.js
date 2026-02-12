@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb'; // Using @ alias is cleaner
 import Donation from '../../../models/donation.model';
 
-export async function DELETE(request, { params }) {
+export async function DELETE({ params }) {
   console.log('🔴 [API] Delete donation endpoint called');
   
   try {

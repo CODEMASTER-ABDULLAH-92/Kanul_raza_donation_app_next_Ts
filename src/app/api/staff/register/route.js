@@ -1,116 +1,86 @@
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import dbConnect from '../../../lib/mongodb';
-import Staff from '../../../models/staff.model';
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import Staff from "../../../models/staff.model";
+import { sendStaffRegistrationEmail } from "../../../lib/email";
+import dbConnect from "../../../lib/mongodb";
 
 export async function POST(request) {
-  console.log('🔵 [API] Staff registration endpoint called');
-  
   try {
-    console.log('🔵 [API] Attempting to connect to database...');
     await dbConnect();
-    console.log('✅ [API] Database connected successfully');
     
-    const body = await request.json();
-    console.log('📦 [API] Request body received:', JSON.stringify(body, null, 2));
-    
-    const { name, email, phone, password, role = 'collector' } = body;
-
-    // Detailed validation
-    console.log('🔍 [API] Validating fields...');
-    const missingFields = [];
-    if (!name) missingFields.push('name');
-    if (!email) missingFields.push('email');
-    if (!phone) missingFields.push('phone');
-    if (!password) missingFields.push('password');
-    
-    if (missingFields.length > 0) {
-      console.error('❌ [API] Missing fields:', missingFields);
+    // Get token from header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `Missing required fields: ${missingFields.join(', ')}` 
-        },
+        { error: "Unauthorized - Token required" },
+        { status: 401 }
+      );
+    }
+    
+    const token = authHeader.split(" ")[1];
+    
+    // Verify admin token (you'll need to implement your token verification logic)
+    // For now, we'll assume the token is valid
+    
+    const { name, email, phone, role, password } = await request.json();
+    
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+      return NextResponse.json(
+        { error: "Name, email, password, and role are required" },
         { status: 400 }
       );
     }
     
-    console.log('✅ [API] All fields validated');
-
     // Check if staff already exists
-    console.log('🔍 [API] Checking for existing staff...');
-    const existingStaff = await Staff.findOne({ 
-      $or: [{ email }, { phone }] 
-    });
-
+    const existingStaff = await Staff.findOne({ email });
     if (existingStaff) {
-      console.error('❌ [API] Staff already exists:', {
-        email: existingStaff.email,
-        phone: existingStaff.phone
-      });
-      
-      let errorMessage = 'Staff already exists';
-      if (existingStaff.email === email) errorMessage = 'Email already registered';
-      else if (existingStaff.phone === phone) errorMessage = 'Phone number already registered';
-      
       return NextResponse.json(
-        { success: false, error: errorMessage },
+        { error: "Staff with this email already exists" },
         { status: 400 }
       );
     }
     
-    console.log('✅ [API] No existing staff found');
-
-    // Create a simple hash for password
-    console.log('🔒 [API] Hashing password...');
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
-
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Generate staff ID
+    const staffId = `STAFF${Date.now().toString().slice(-6)}`;
+    
     // Create new staff
-    console.log('👤 [API] Creating new staff document...');
-    const staff = new Staff({
+    const newStaff = new Staff({
       name,
       email,
-      phone,
+      phone: phone || "",
+      role,
+      staffId,
       password: hashedPassword,
-      role
+      active: true,
+      token,
+      createdBy: "admin", // You can get admin ID from token
     });
-
-    console.log('💾 [API] Saving staff to database...');
-    await staff.save();
-    console.log('✅ [API] Staff saved successfully');
-
-    // Generate simple token
-    console.log('🔑 [API] Generating authentication token...');
-    const token = crypto.randomBytes(32).toString('hex');
-    staff.token = token;
-    await staff.save();
-    console.log('✅ [API] Token saved');
-
-    const staffResponse = staff.toJSON();
-    console.log('📤 [API] Returning success response');
+    console.log(token);
     
+    await newStaff.save();
+    
+    // Send registration email
+    await sendStaffRegistrationEmail(email, name, password, role);
     return NextResponse.json({
       success: true,
-      message: 'Staff registered successfully',
+      message: "Staff registered successfully",
       data: {
-        staff: staffResponse,
-        token
-      }
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('❌ [API] Error in registration:', error);
-    console.error('❌ [API] Error stack:', error.stack);
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to register staff: ' + error.message,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        id: newStaff._id,
+        name: newStaff.name,
+        email: newStaff.email,
+        role: newStaff.role,
+        staffId: newStaff.staffId,
       },
+    });
+    
+  } catch (error) {
+    console.error("Staff registration error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

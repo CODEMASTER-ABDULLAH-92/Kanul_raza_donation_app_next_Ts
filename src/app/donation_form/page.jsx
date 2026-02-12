@@ -6,12 +6,10 @@ import { toast } from "react-hot-toast";
 import {
   FiUser,
   FiMail,
-
   FiDollarSign,
   FiBook,
   FiHome,
   FiSend,
-  FiCheck,
   FiX,
   FiClock,
   FiFileText,
@@ -123,97 +121,55 @@ export default function DonationForm() {
     }
   }, [reset]);
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      const donationData = {
-        ...data,
-        amount: parseFloat(data.amount),
-        staffName: user?.name || "Staff Member",
-        staffEmail: user?.email || "",
-        sendEmail,
-        notes: data.notes || "",
-        timestamp: new Date().toISOString(),
-      };
+const onSubmit = async (data) => {
+  setLoading(true);
 
-      console.log("📤 Submitting donation:", donationData);
+  try {
+    // ✅ FIX: correct key
+    const token = localStorage.getItem("staff_token");
 
-      const response = await fetch("/api/addData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("staff_token")}`,
-        },
-        body: JSON.stringify(donationData),
-      });
+    console.log("🧪 TOKEN:", token);
 
-      const result = await response.json();
-      console.log("📥 Response:", result);
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to submit donation");
-      }
-
-      // Show success message
-      toast.success(
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center gap-2">
-            <FiCheck className="h-5 w-5 text-green-500" />
-            <span className="font-semibold text-lg">Donation Recorded Successfully!</span>
-          </div>
-          <div className="pl-7 space-y-1">
-            <p className="text-sm text-gray-700">
-              Receipt: <span className="font-mono font-bold">{result.data.donation.receiptNumber}</span>
-            </p>
-            <p className="text-sm text-gray-700">
-              Amount: <span className="font-bold">PKR {parseFloat(data.amount).toLocaleString()}</span>
-            </p>
-            <p className="text-sm text-gray-700">
-              For: <span className="font-medium">{charityCategories.find(c => c.value === data.category)?.label}</span>
-            </p>
-          </div>
-        </div>,
-        { duration: 6000 }
-      );
-
-      // Show email notification status
-      if (result.data.notifications?.emailSent) {
-        toast.success(
-          <div className="flex items-center gap-2">
-            <FiMail className="h-4 w-4" />
-            <span>Confirmation email sent to donor</span>
-          </div>,
-          { duration: 4000 }
-        );
-      }
-
-      // Reset form
-      reset({
-        phone: "",
-        email: "",
-        donorName: "",
-        amount: "",
-        notes: "",
-      });
-      setSendEmail(true);
-
-      // Auto-refresh after 5 seconds
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
-
-    } catch (error) {
-      console.error("Donation submission error:", error);
-      toast.error(
-        <div className="flex flex-col">
-          <span className="font-medium">Submission Failed</span>
-          <span className="text-sm">{error.message}</span>
-        </div>
-      );
-    } finally {
-      setLoading(false);
+    if (!token || token.split(".").length !== 3) {
+      throw new Error("Session expired. Please login again.");
     }
-  };
+
+    const donationData = {
+      donorName: data.donorName,
+      email: data.email,
+      phone: data.phone,
+      amount: Number(data.amount),
+      charityType: data.charityType,
+      category: data.category,
+      notes: data.notes || "",
+      sendEmail,
+    };
+
+    const response = await fetch("/api/addData", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ NOW VALID JWT
+      },
+      body: JSON.stringify(donationData),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error);
+    }
+
+    toast.success("Donation recorded successfully");
+
+  } catch (error) {
+    console.error("Donation submission error:", error);
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4 md:p-8">
@@ -356,7 +312,7 @@ export default function DonationForm() {
                   </span>
                   <input
                     type="number"
-                    step="0.01"
+                    // step="0.01"
                     {...register("amount", {
                       required: "Amount is required",
                       min: { value: 1, message: "Minimum donation is PKR 1" },

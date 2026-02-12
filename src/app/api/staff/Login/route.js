@@ -1,75 +1,64 @@
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import dbConnect from '../../../lib/mongodb';
 import Staff from '../../../models/staff.model';
-
-
 export async function POST(request) {
   try {
     await dbConnect();
-    
-    const body = await request.json();
-    const { staffId, email, password } = body;
 
-    // Validation
-    if (!password || (!staffId && !email)) {
+    const { email, password } = await request.json();
+
+    if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: 'Staff ID/Email and password are required' },
+        { success: false, error: "Email and password required" },
         { status: 400 }
       );
     }
 
-    // Find staff by staffId or email
-    const query = staffId ? { staffId } : { email };
-    const staff = await Staff.findOne(query);
-
+    const staff = await Staff.findOne({ email });
     if (!staff) {
       return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
+        { success: false, error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    // Check if staff is active
-    if (!staff.active) {
+    const isMatch = await bcrypt.compare(password, staff.password);
+    if (!isMatch) {
       return NextResponse.json(
-        { success: false, error: 'Account is deactivated' },
+        { success: false, error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    // Verify password (simple hash comparison for now)
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
-    
-    if (hashedPassword !== staff.password) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
-        { status: 401 }
-      );
-    }
-
-    // Generate new token
-    const token = crypto.randomBytes(32).toString('hex');
-    staff.token = token;
-    staff.lastLogin = new Date();
-    await staff.save();
+    // ✅ CREATE JWT (THIS WAS MISSING)
+    const token = jwt.sign(
+      {
+        staffId: staff._id,
+        role: staff.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     return NextResponse.json({
       success: true,
-      message: 'Login successful',
       data: {
-        staff: staff.toJSON(),
-        token
-      }
+        token, // ✅ JWT
+        staff: {
+          id: staff._id,
+          name: staff.name,
+          email: staff.email,
+          role: staff.role,
+        },
+      },
     });
 
   } catch (error) {
-    console.error('Error logging in:', error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to login' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

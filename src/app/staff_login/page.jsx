@@ -11,8 +11,6 @@ import {
   FiEye,
   FiEyeOff,
 } from "react-icons/fi";
-import Link from "next/link";
-
 export default function StaffLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -176,31 +174,7 @@ export default function StaffLogin() {
             )}
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                {...register("remember")}
-                className="h-4 w-4 text-green-500 rounded focus:ring-green-400 cursor-pointer"
-              />
-              <span className="text-sm text-gray-600 cursor-pointer">
-                Remember me
-              </span>
-            </label>
 
-            <button
-              type="button"
-              className="text-sm text-green-600 hover:text-green-700 font-medium"
-              onClick={() =>
-                toast.info(
-                  "Please contact your administrator for password reset."
-                )
-              }
-            >
-              Forgot password?
-            </button>
-          </div>
 
           {/* Form Actions */}
           <div className="flex flex-col gap-4 pt-2">
@@ -221,16 +195,6 @@ export default function StaffLogin() {
                 </>
               )}
             </button>
-
-            <div className="text-center">
-              <Link
-                href="/staff_registeration"
-                className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 text-sm font-medium"
-              >
-                Don`t have an account? Register here
-                <FiArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
           </div>
         </form>
       </div>

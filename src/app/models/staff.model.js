@@ -1,52 +1,62 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const staffSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
   },
+
   email: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true,
-    trim: true
   },
+
   phone: {
     type: String,
-    required: true,
-    trim: true
+    default: "",
   },
+
   password: {
     type: String,
-    required: true
+    required: true,
   },
-  // role: {
-  //   type: String,
-  //   enum: ['collector', 'supervisor', 'admin'],
-  //   default: 'collector'
-  // },
+
+  role: {
+    type: String,
+    enum: ["collector", "admin"],
+    default: "collector",
+  },
+
+  staffId: {
+    type: String,
+    unique: true,
+  },
+
+  token: {
+    type: String, // ✅ REQUIRED FOR STORAGE
+    default: null,
+  },
+
   active: {
     type: Boolean,
-    default: true
+    default: true,
   },
+
+  createdBy: {
+    type: String,
+    default: "system",
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+
   lastLogin: {
-    type: Date
+    type: Date,
   },
-  token: {
-    type: String
-  }
-}, {
-  timestamps: true
 });
 
-// Method to safely return staff data without sensitive info
-staffSchema.methods.toJSON = function() {
-  const obj = this.toObject();
-  delete obj.password;
-  delete obj.token;
-  return obj;
-};
-
-export default mongoose.models.Staff || mongoose.model('Staff', staffSchema);
+export default mongoose.models.Staff ||
+  mongoose.model("Staff", staffSchema);
