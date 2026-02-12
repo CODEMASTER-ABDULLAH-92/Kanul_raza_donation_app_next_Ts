@@ -48,7 +48,7 @@ export default function Home() {
               <div className="h-10 w-10 rounded-xl bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
                 <FaMosque className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-green-700">Darul Riza Institute</span>
+              <span className="text-xl font-bold text-green-700">Darul Raza Institute</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href="#about" className="text-gray-700 hover:text-green-600 transition-colors">About Us</a>
@@ -68,7 +68,7 @@ export default function Home() {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Welcome to <span className="bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Darul Riza Institute</span>
+            Welcome to <span className="bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Darul Raza Institute</span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
@@ -129,7 +129,7 @@ export default function Home() {
             
             <div className="bg-linear-to-r from-green-50 to-emerald-50 p-8 md:p-12 rounded-2xl shadow-lg border border-green-200">
               <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                <span className="font-semibold text-green-700">Darul Riza Institute</span> is a comprehensive Islamic platform dedicated to serving the Muslim community through education, spiritual guidance, and social welfare. We strive to create a society deeply rooted in Islamic values while addressing contemporary challenges.
+                <span className="font-semibold text-green-700">Darul Raza Institute</span> is a comprehensive Islamic platform dedicated to serving the Muslim community through education, spiritual guidance, and social welfare. We strive to create a society deeply rooted in Islamic values while addressing contemporary challenges.
               </p>
               
               <div className="space-y-4">
@@ -247,7 +247,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">Email</p>
-                      <p className="text-gray-600">info@Darulriza.org</p>
+                      <p className="text-gray-600">info@DarulRaza.org</p>
                     </div>
                   </div>
                 </div>
@@ -284,7 +284,7 @@ export default function Home() {
               <div className="h-8 w-8 rounded-lg bg-linear-to-r from-green-500 to-green-600 flex items-center justify-center">
                 <FaMosque className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-green-700">Darul Riza Institute</span>
+              <span className="text-lg font-bold text-green-700">Darul Raza Institute</span>
             </div>
             
             <div className="flex items-center gap-6 text-sm text-gray-600">
